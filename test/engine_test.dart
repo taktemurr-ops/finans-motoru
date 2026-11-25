@@ -7,9 +7,9 @@ import 'package:studio_core/app/services/purchases.dart';
 import 'package:studio_core/core/save_store.dart';
 
 void main() {
-  test('17 araç, 33 dilde ad ve açıklama, finans uyarısı', () {
-    expect(finansTools.length, 17);
-    expect(finansTools.map((t) => t.id).toSet().length, 17);
+  test('20 araç, 33 dilde ad ve açıklama, finans uyarısı', () {
+    expect(finansTools.length, 20);
+    expect(finansTools.map((t) => t.id).toSet().length, 20);
     for (final t in finansTools) {
       expect(t.title.length, 33, reason: t.id);
       expect(t.tagline.length, 33, reason: t.id);
@@ -184,11 +184,61 @@ void main() {
     expect(kidsCsv([k]).split('\r\n').length, 3);
   });
 
+
+  test('konut kredisi: ek ödeme vadeyi kısaltır, faiz tasarrufu', () {
+    final b = mortgage(1000000, 0.02, 120);
+    expect(b.months, 120);
+    expect(b.payment, closeTo(loan(1000000, 0.02, 120).payment, 1e-6));
+    expect(b.rows.last.balance, closeTo(0, 1e-6));
+    expect(b.interestSaved, closeTo(0, 1e-6));
+    final e = mortgage(1000000, 0.02, 120, extra: 5000, lump: 100000, lumpMonth: 12);
+    expect(e.months, lessThan(120));
+    expect(e.payment, b.payment);
+    expect(e.interest, lessThan(b.interest));
+    expect(e.interestSaved, closeTo(b.interest - e.interest, 1e-6));
+    expect(e.rows.last.balance, closeTo(0, 0.01));
+    final paid = e.rows.fold<double>(0, (a, r) => a + r.principal);
+    expect(paid, closeTo(1000000, 0.01));
+    expect(mortgage(0, 0.02, 120).rows, isEmpty);
+    expect(monthlyFromAnnual(0.24), closeTo(0.02, 1e-12));
+  });
+
+  test('emeklilik: birikim, reel değer ve gereken katkı', () {
+    final r = retirement(age: 30, retireAge: 31, savings: 0, monthly: 100, annualReturn: 0);
+    expect(r.yearly.length, 1);
+    expect(r.atRetirement, closeTo(1200, 1e-9));
+    expect(r.deposited, closeTo(1200, 1e-9));
+    expect(r.monthlyIncome, closeTo(1200 / 300, 1e-9));
+    final g = retirement(age: 30, retireAge: 60, savings: 10000, monthly: 1000, annualReturn: 0.07, raise: 0.03, inflation: 0.02);
+    expect(g.yearly.length, 30);
+    expect(g.atRetirement, greaterThan(g.deposited));
+    expect(g.atRetirementReal, lessThan(g.atRetirement));
+    expect(annuityPayment(1200, 0, 12), 100);
+    expect(annuityPayment(100000, 0.01, 12), closeTo(8884.88, 0.01));
+    final need = requiredMonthly(targetReal: 2000, age: 30, retireAge: 60, savings: 0, annualReturn: 0.05, inflation: 0.02)!;
+    final chk = retirement(age: 30, retireAge: 60, savings: 0, monthly: need, annualReturn: 0.05, inflation: 0.02);
+    expect(chk.monthlyIncomeReal, closeTo(2000, 0.01));
+    expect(requiredMonthly(targetReal: 10, age: 60, retireAge: 50, savings: 0, annualReturn: 0.05), isNull);
+    expect(retirement(age: 60, retireAge: 50, savings: 1, monthly: 1, annualReturn: 0).yearly, isEmpty);
+  });
+
+  test('net varlık: toplamlar ve aylık kayıt', () {
+    final (a, l, n) = netWorth([(true, 50000), (true, 25000), (false, 30000)]);
+    expect((a, l, n), (75000, 30000, 45000));
+    var s = upsertSnapshot([], DateTime(2026, 3, 5), 100, 40);
+    s = upsertSnapshot(s, DateTime(2026, 3, 20), 120, 40);
+    expect(s.length, 1);
+    expect(s.single['a'], 120);
+    s = upsertSnapshot(s, DateTime(2026, 1, 2), 10, 0);
+    expect([for (final x in s) x['m']], ['2026-01', '2026-03']);
+  });
+
   for (final t in [
     'uyg-butce-ve-harcama-takibi', 'uyg-kredi-hesaplayici', 'uyg-faiz-ve-birikim-hesaplayici', 'uyg-indirim-ve-kdv-hesaplayici',
     'uyg-hesap-bolusme-ve-bahsis', 'uyg-borc-takibi', 'uyg-abonelik-takibi', 'uyg-fatura-hatirlatici', 'uyg-birikim-hedefi',
     'uyg-harclik-takibi', 'uyg-birim-fiyat-karsilastirma', 'uyg-taksit-hesaplayici', 'uyg-kredi-karti-borc-planlayici',
     'uyg-kira-artis-hesaplayici', 'uyg-enflasyon-hesaplayici', 'uyg-gelir-vergisi-hesaplayici', 'uyg-zekat-hesaplayici',
+    'uyg-konut-kredisi-hesaplayici', 'uyg-emeklilik-hesaplayici', 'uyg-net-varlik-takibi',
   ]) {
     testWidgets('araç ekranı açılır: $t', (tester) async {
       final s = AppServices(hubId: 'm', backend: MemoryBackend(), ads: NoAdsService(), purchases: NoPurchaseService());

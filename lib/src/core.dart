@@ -379,3 +379,165 @@ int? cheapest(List<(double, double, String)> items) {
   }
   return best;
 }
+
+// -------------------------------------------------------- konut kredisi
+
+class MortgageResult {
+  /// Planlanan (ek ödemesiz) aylık taksit.
+  final double payment;
+  final List<LoanRow> rows;
+
+  /// Ek ödemesiz plandaki toplam faiz ve vade.
+  final double baseInterest;
+  final int baseMonths;
+  const MortgageResult(this.payment, this.rows, this.baseInterest, this.baseMonths);
+  int get months => rows.length;
+  double get interest => rows.fold<double>(0, (a, r) => a + r.interest);
+  double get total => rows.fold<double>(0, (a, r) => a + r.payment);
+  double get interestSaved => math.max(0.0, baseInterest - interest);
+}
+
+/// Konut kredisi: eşit taksit, isteğe bağlı her ay [extra] ek anapara
+/// ödemesi ve [lumpMonth]. ayda tek seferlik [lump] ödeme (vade kısalır,
+/// taksit aynı kalır). [monthlyRate] aylık faiz (ör. 0.025).
+MortgageResult mortgage(double principal, double monthlyRate, int months,
+    {double extra = 0, double lump = 0, int lumpMonth = 0}) {
+  final base = loan(principal, monthlyRate, months);
+  if (base.rows.isEmpty) return const MortgageResult(0, [], 0, 0);
+  final pay = base.payment;
+  var bal = principal;
+  final rows = <LoanRow>[];
+  for (var i = 1; i <= months && bal > 0.005; i++) {
+    final interest = bal * monthlyRate;
+    var p = pay - interest + math.max(0.0, extra) + (i == lumpMonth ? math.max(0.0, lump) : 0.0);
+    if (p > bal || i == months) p = bal;
+    bal = math.max(0.0, bal - p);
+    rows.add(LoanRow(i, p + interest, interest, 0, p, bal));
+  }
+  return MortgageResult(pay, rows, base.interest, base.rows.length);
+}
+
+/// Yıllık nominal faizden aylık oran.
+double monthlyFromAnnual(double annual) => annual / 12;
+
+// ---------------------------------------------------------- emeklilik
+
+class RetirementResult {
+  /// Her yıl sonundaki birikim (nominal).
+  final List<double> yearly;
+  final double atRetirement;
+  final double deposited;
+
+  /// Emeklilikte aylık çekilebilir tutar (nominal) ve bugünkü parayla.
+  final double monthlyIncome;
+  final double monthlyIncomeReal;
+  final double atRetirementReal;
+  const RetirementResult(this.yearly, this.atRetirement, this.deposited, this.monthlyIncome, this.monthlyIncomeReal,
+      this.atRetirementReal);
+}
+
+double _monthlyRate(double annual) => annual <= -1 ? -1 : math.pow(1 + annual, 1 / 12).toDouble() - 1;
+
+/// Anüite: [balance]'ı [months] ayda [r] aylık getiriyle eşit tutarlarda
+/// tüketen aylık ödeme.
+double annuityPayment(double balance, double r, int months) {
+  if (months <= 0 || balance <= 0) return 0;
+  if (r.abs() < 1e-12) return balance / months;
+  return balance * r / (1 - math.pow(1 + r, -months));
+}
+
+/// Emeklilik birikimi projeksiyonu (bilgi amaçlı). Katkılar her yıl
+/// [raise] oranında artar; getiri aylık bileşiktir. Emeklilikte
+/// [payoutYears] yıl boyunca [payoutReturn] getiriyle eşit çekim varsayılır.
+RetirementResult retirement({
+  required int age,
+  required int retireAge,
+  required double savings,
+  required double monthly,
+  required double annualReturn,
+  double raise = 0,
+  double inflation = 0,
+  int payoutYears = 25,
+  double? payoutReturn,
+}) {
+  final years = retireAge - age;
+  if (years <= 0 || years > 80) return const RetirementResult([], 0, 0, 0, 0, 0);
+  final r = _monthlyRate(annualReturn);
+  var bal = savings, dep = savings, add = monthly;
+  final yearly = <double>[];
+  for (var y = 0; y < years; y++) {
+    for (var m = 0; m < 12; m++) {
+      bal = bal * (1 + r) + add;
+      dep += add;
+    }
+    yearly.add(bal);
+    add *= 1 + raise;
+  }
+  final infl = math.pow(1 + inflation, years).toDouble();
+  final pay = annuityPayment(bal, _monthlyRate(payoutReturn ?? annualReturn), payoutYears * 12);
+  return RetirementResult(yearly, bal, dep, pay, pay / infl, bal / infl);
+}
+
+/// Bugünkü parayla [targetReal] aylık gelir için gereken başlangıç aylık
+/// katkısı (ikili arama). Ulaşılamazsa null.
+double? requiredMonthly({
+  required double targetReal,
+  required int age,
+  required int retireAge,
+  required double savings,
+  required double annualReturn,
+  double raise = 0,
+  double inflation = 0,
+  int payoutYears = 25,
+  double? payoutReturn,
+}) {
+  double income(double m) => retirement(
+        age: age,
+        retireAge: retireAge,
+        savings: savings,
+        monthly: m,
+        annualReturn: annualReturn,
+        raise: raise,
+        inflation: inflation,
+        payoutYears: payoutYears,
+        payoutReturn: payoutReturn,
+      ).monthlyIncomeReal;
+  if (retireAge <= age) return null;
+  if (income(0) >= targetReal) return 0;
+  var lo = 0.0, hi = 1e9;
+  if (income(hi) < targetReal) return null;
+  for (var i = 0; i < 80; i++) {
+    final mid = (lo + hi) / 2;
+    if (income(mid) >= targetReal) {
+      hi = mid;
+    } else {
+      lo = mid;
+    }
+  }
+  return hi;
+}
+
+// ---------------------------------------------------------- net varlık
+
+/// Varlık ve borç kalemleri (kuruş): (varlık mı, tutar). Döner: (varlık,
+/// borç, net).
+(int, int, int) netWorth(Iterable<(bool, int)> items) {
+  var a = 0, l = 0;
+  for (final (asset, c) in items) {
+    if (asset) {
+      a += c;
+    } else {
+      l += c;
+    }
+  }
+  return (a, l, a - l);
+}
+
+/// Aylık anlık görüntü listesine bu ayın değerini yazar ya da günceller
+/// (ay anahtarı "2026-11"). Liste aya göre sıralı kalır, en fazla 120 ay.
+List<Map<String, Object?>> upsertSnapshot(List<Map<String, Object?>> snaps, DateTime now, int assets, int liabilities) {
+  final key = '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}';
+  final out = [for (final s in snaps) if (s['m'] != key) s, {'m': key, 'a': assets, 'l': liabilities}];
+  out.sort((x, y) => '${x['m']}'.compareTo('${y['m']}'));
+  return out.length > 120 ? out.sublist(out.length - 120) : out;
+}

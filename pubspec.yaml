@@ -1,5 +1,5 @@
 name: finans_motoru
-description: "Finans ve Hesaplama motoru: 17 çevrimdışı araç (bütçe, borç, birikim, abonelik, fatura, harçlık ve hesaplayıcılar)."
+description: "Finans ve Hesaplama motoru: 20 çevrimdışı araç (bütçe, borç, birikim, net varlık, abonelik, fatura, harçlık, konut kredisi, emeklilik ve diğer hesaplayıcılar)."
 publish_to: none
 version: 1.0.0
 

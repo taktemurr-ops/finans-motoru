@@ -1,4 +1,4 @@
-/// Üretilmiş dosya (proto/apps/finans/mkengine.py). Finans ve Hesaplama'nın 17 aracı.
+/// Üretilmiş dosya (proto/apps/finans/mkengine.py). Finans ve Hesaplama'nın 20 aracı.
 library;
 
 import 'package:flutter/material.dart';
@@ -6,6 +6,7 @@ import 'package:studio_core/apps/apps.dart';
 
 import 'tools/books_ui.dart';
 import 'tools/calcs.dart';
+import 'tools/plans.dart';
 import 'tx.dart';
 
 /// Kategoriler (merkezdeki çip sırası).
@@ -204,6 +205,39 @@ final List<AppTool> finansTools = [
     disclaimer: AppDisclaimer.finance,
     keywords: const ['zakat', 'nisap', 'nisab'],
     builder: (context, t) => ZakatTool(t),
+  ),
+  AppTool(
+    id: 'uyg-konut-kredisi-hesaplayici',
+    title: kFinTitle['uyg-konut-kredisi-hesaplayici']!,
+    tagline: kFinTag['uyg-konut-kredisi-hesaplayici']!,
+    icon: Icons.house_rounded,
+    color: const Color(0xFF4DB6AC),
+    category: 'loan',
+    disclaimer: AppDisclaimer.finance,
+    keywords: const ['mortgage', 'konut', 'ev', 'amortization', 'prepayment'],
+    builder: (context, t) => MortgageTool(t),
+  ),
+  AppTool(
+    id: 'uyg-emeklilik-hesaplayici',
+    title: kFinTitle['uyg-emeklilik-hesaplayici']!,
+    tagline: kFinTag['uyg-emeklilik-hesaplayici']!,
+    icon: Icons.beach_access_rounded,
+    color: const Color(0xFFFFB74D),
+    category: 'loan',
+    disclaimer: AppDisclaimer.finance,
+    keywords: const ['retirement', 'emeklilik', 'pension', 'bes', 'fire'],
+    builder: (context, t) => RetirementTool(t),
+  ),
+  AppTool(
+    id: 'uyg-net-varlik-takibi',
+    title: kFinTitle['uyg-net-varlik-takibi']!,
+    tagline: kFinTag['uyg-net-varlik-takibi']!,
+    icon: Icons.account_balance_rounded,
+    color: const Color(0xFF81C784),
+    category: 'track',
+    disclaimer: AppDisclaimer.finance,
+    keywords: const ['net worth', 'varlık', 'assets', 'debts', 'csv'],
+    builder: (context, t) => NetWorthTool(t),
   ),
 ];
 

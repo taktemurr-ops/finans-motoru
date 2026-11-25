@@ -1,6 +1,6 @@
 # finans-motoru
 
-Finans ve Hesaplama ailesinin motoru: 17 aracın gerçek uygulamaları, 33 dilde metinleri ve
+Finans ve Hesaplama ailesinin motoru: 20 aracın gerçek uygulamaları, 33 dilde metinleri ve
 merkez görünümü (onaylı oyun merkezi tasarımının koyu yeşil tonu).
 
 - Çatı: `studio_core/apps` (AppTool, merkez kabuğu, reklam/satın alma, gizlilik, favoriler).
@@ -12,6 +12,11 @@ merkez görünümü (onaylı oyun merkezi tasarımının koyu yeşil tonu).
 - Fatura ve abonelik hatırlatmaları `flutter_local_notifications` ile yerel bildirimdir; kesin alarm
   izni istenmez. Web'de bildirim yoktur, tarihler listede görünür.
 - Harçlık takibi **ebeveynler** için bir defterdir; çocuktan veri toplanmaz.
+- Konut kredisi hesaplayıcı eşit taksitli plan, aylık/tek seferlik ek ödeme (vade kısalır),
+  masraflar ve taksit/gelir oranı gösterir. Emeklilik hesaplayıcı bilgi amaçlı bir projeksiyondur
+  (getiri, katkı artışı, enflasyon, çekim süresi; hedef gelire göre gereken katkı); yatırım
+  tavsiyesi değildir. Net varlık takibi değerleri kullanıcı girer; her değişiklikte o ayın toplamı
+  kaydedilir (en fazla 120 ay), CSV'ye aktarılır.
 
 ## Güncellenmesi gereken veriler (`lib/src/core.dart`)
 

@@ -35,7 +35,7 @@ class _Bars extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 1.5),
               child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
                 Container(
-                  height: 120 * (maxV <= 0 ? 0 : (values[i].abs() / maxV)).clamp(0.02, 1.0),
+                  height: 120 * (maxV <= 0 ? 0.0 : (values[i].abs() / maxV)).clamp(0.02, 1.0),
                   decoration: BoxDecoration(
                     color: values[i] < 0 ? Colors.redAccent : color,
                     borderRadius: BorderRadius.circular(3),
@@ -133,7 +133,7 @@ class _MortgageState extends CalcState<MortgageTool> {
           child: Column(children: [
             line(L(t, 'payment'), m(res.payment), big: true),
             line(L(t, 'loan_amount'), m(principal)),
-            line(L(t, 'ltv'), '${(price <= 0 ? 0 : principal / price * 100).toStringAsFixed(1)} %'),
+            line(L(t, 'ltv'), '${(price <= 0 ? 0.0 : principal / price * 100).toStringAsFixed(1)} %'),
             line(L(t, 'total_interest'), m(res.interest)),
             line(L(t, 'total_payment'), m(res.total)),
             if (fee > 0) line(L(t, 'fees'), m(fee)),

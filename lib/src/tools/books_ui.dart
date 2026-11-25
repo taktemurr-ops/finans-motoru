@@ -155,7 +155,7 @@ class _BudgetState extends BookState<BudgetTool> {
   Future<void> _editRule([Rule? x]) async {
     final cats = _cats;
     final r = await editForm(context, t, L(t, 'recurring'), [
-      F.text('title', L(t, 'name'), initial: x?.title ?? '', required: true),
+      F.text('title', L(t, 'name'), initial: x?.title ?? '', must: true),
       F.choice('kind', L(t, 'type'), [L(t, 'expense'), L(t, 'income')], initial: x?.income == true ? 1 : 0),
       F.money('amount', L(t, 'amount'), initial: x?.cents),
       F.choice('cat', L(t, 'category'), cats, initial: x == null ? 0 : _catIndex(x.category)),
@@ -181,7 +181,7 @@ class _BudgetState extends BookState<BudgetTool> {
 
   Future<void> _editBudget(String cat) async {
     final r = await editForm(context, t, '${L(t, 'budget')} · $cat', [
-      F.money('amount', L(t, 'monthly_limit'), initial: _l.budgets[cat], required: false),
+      F.money('amount', L(t, 'monthly_limit'), initial: _l.budgets[cat], must: false),
     ]);
     if (r == null) return;
     final b = {..._l.budgets};
@@ -398,7 +398,7 @@ class _DebtState extends BookState<DebtTool> {
   Future<void> _add([Debt? e]) async {
     final r = await editForm(context, t, L(t, e == null ? 'add' : 'edit'), [
       F.choice('kind', L(t, 'type'), [L(t, 'i_owe'), L(t, 'owed_to_me')], initial: e?.owe == false ? 1 : 0),
-      F.text('name', L(t, 'person'), initial: e?.name ?? '', required: true),
+      F.text('name', L(t, 'person'), initial: e?.name ?? '', must: true),
       F.money('amount', L(t, 'amount'), initial: e?.cents),
       F.date('due', L(t, 'due_date'), initial: e?.due),
       F.text('note', L(t, 'note'), initial: e?.note ?? ''),
@@ -514,7 +514,7 @@ class _GoalState extends BookState<GoalTool> {
 
   Future<void> _add([Goal? e]) async {
     final r = await editForm(context, t, L(t, e == null ? 'add' : 'edit'), [
-      F.text('title', L(t, 'goal'), initial: e?.title ?? '', required: true),
+      F.text('title', L(t, 'goal'), initial: e?.title ?? '', must: true),
       F.money('target', L(t, 'target'), initial: e?.target),
       F.date('deadline', L(t, 'deadline'), initial: e?.deadline),
     ]);
@@ -625,7 +625,7 @@ class _SubsState extends BookState<SubsTool> {
 
   Future<void> _add([Sub? e]) async {
     final r = await editForm(context, t, L(t, e == null ? 'add' : 'edit'), [
-      F.text('name', L(t, 'name'), initial: e?.name ?? '', required: true),
+      F.text('name', L(t, 'name'), initial: e?.name ?? '', must: true),
       F.money('amount', L(t, 'amount'), initial: e?.cents),
       F.choice('period', L(t, 'period'), [L(t, 'monthly'), L(t, 'yearly'), L(t, 'weekly')],
           initial: e == null ? 0 : _periods.indexOf(e.period).clamp(0, 2)),
@@ -723,8 +723,8 @@ class _BillState extends BookState<BillTool> {
 
   Future<void> _add([Bill? e]) async {
     final r = await editForm(context, t, L(t, e == null ? 'add' : 'edit'), [
-      F.text('name', L(t, 'bill'), initial: e?.name ?? '', required: true),
-      F.money('amount', L(t, 'estimate'), initial: e?.cents, required: false),
+      F.text('name', L(t, 'bill'), initial: e?.name ?? '', must: true),
+      F.money('amount', L(t, 'estimate'), initial: e?.cents, must: false),
       F.integer('day', L(t, 'due_day'), initial: e?.day ?? 15),
       F.toggle('remind', L(t, 'remind'), initial: e?.remind ?? true),
     ]);
@@ -749,7 +749,7 @@ class _BillState extends BookState<BillTool> {
       nb = b.unmark(month);
     } else {
       final r = await editForm(context, t, '${L(t, 'mark_paid')} · ${b.name}', [
-        F.money('amount', L(t, 'amount'), initial: b.cents > 0 ? b.cents : null, required: false),
+        F.money('amount', L(t, 'amount'), initial: b.cents > 0 ? b.cents : null, must: false),
       ]);
       if (r == null) return;
       nb = b.markPaid(month, r['amount'] as int? ?? 0);
@@ -829,8 +829,8 @@ class _AllowanceState extends BookState<AllowanceTool> {
 
   Future<void> _add([Kid? e]) async {
     final r = await editForm(context, t, L(t, e == null ? 'add' : 'edit'), [
-      F.text('name', L(t, 'name'), initial: e?.name ?? '', required: true),
-      F.money('weekly', L(t, 'weekly_amount'), initial: e?.weekly, required: false),
+      F.text('name', L(t, 'name'), initial: e?.name ?? '', must: true),
+      F.money('weekly', L(t, 'weekly_amount'), initial: e?.weekly, must: false),
     ]);
     if (r == null) return;
     final nk = Kid(id: e?.id ?? newId(), name: r['name'] as String, weekly: r['weekly'] as int? ?? 0, moves: e?.moves ?? const []);

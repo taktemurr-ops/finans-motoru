@@ -254,28 +254,28 @@ class F {
   final String kind; // text | money | date | choice | toggle | int
   final Object? initial;
   final List<String> options;
-  final bool required;
-  const F.text(this.key, this.label, {String this.initial = '', this.required = false})
+  final bool must;
+  const F.text(this.key, this.label, {String this.initial = '', this.must = false})
       : kind = 'text',
         options = const [];
-  const F.money(this.key, this.label, {int? this.initial, this.required = true})
+  const F.money(this.key, this.label, {int? this.initial, this.must = true})
       : kind = 'money',
         options = const [];
   const F.date(this.key, this.label, {DateTime? this.initial})
       : kind = 'date',
         options = const [],
-        required = false;
+        must = false;
   const F.choice(this.key, this.label, this.options, {int this.initial = 0})
       : kind = 'choice',
-        required = false;
+        must = false;
   const F.toggle(this.key, this.label, {bool this.initial = false})
       : kind = 'toggle',
         options = const [],
-        required = false;
+        must = false;
   const F.integer(this.key, this.label, {int this.initial = 1})
       : kind = 'int',
         options = const [],
-        required = true;
+        must = true;
 }
 
 /// Alanlardan oluşan kayıt penceresi. Değerler: text → String, money → int
@@ -334,13 +334,13 @@ class _FormDialogState extends State<_FormDialog> {
       switch (f.kind) {
         case 'text':
           final s = _c[f.key]!.text.trim();
-          if (f.required && s.isEmpty) return null;
+          if (f.must && s.isEmpty) return null;
           out[f.key] = s;
         case 'money':
           final raw = _c[f.key]!.text;
           final v = parseCents(raw);
-          if (v == null && (f.required || raw.trim().isNotEmpty)) return null;
-          if (f.required && v == 0) return null;
+          if (v == null && (f.must || raw.trim().isNotEmpty)) return null;
+          if (f.must && v == 0) return null;
           out[f.key] = v;
         case 'int':
           final v = int.tryParse(_c[f.key]!.text.trim());

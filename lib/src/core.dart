@@ -24,9 +24,9 @@ String fmtMoney(double v, String lang, [String sym = '']) {
     if (i > 0 && (digits.length - i) % 3 == 0) b.write(dot ? ',' : '.');
     b.write(digits[i]);
   }
-  final num = '${neg ? '-' : ''}$b${dot ? '.' : ','}${parts[1]}';
-  if (sym.isEmpty) return num;
-  return '$num $sym';
+  final text = '${neg ? '-' : ''}$b${dot ? '.' : ','}${parts[1]}';
+  if (sym.isEmpty) return text;
+  return '$text $sym';
 }
 
 /// Kuruştan biçimli tutar.

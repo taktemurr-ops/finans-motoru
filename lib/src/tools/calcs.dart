@@ -844,9 +844,16 @@ class _UnitPriceState extends CalcState<UnitPriceTool> {
         AppPanel(
           child: Column(children: [
             Row(children: [
-              Text('${L(t, 'item')} ${i + 1}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
-              const Spacer(),
-              if (best == i) Chip(avatar: const Icon(Icons.star_rounded, size: 18), label: Text(L(t, 'cheapest'))),
+              Expanded(
+                child: Text('${L(t, 'item')} ${i + 1}',
+                    maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+              ),
+              if (best == i)
+                Flexible(
+                  child: Chip(
+                      avatar: const Icon(Icons.star_rounded, size: 18),
+                      label: Text(L(t, 'cheapest'), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                ),
             ]),
             Row(children: [
               Expanded(child: field('p$i', L(t, 'price'), i == 0 ? '45' : '120')),

@@ -1,5 +1,5 @@
 name: finans_motoru
-description: "Finans ve Hesaplama motoru: 20 çevrimdışı araç (bütçe, borç, birikim, net varlık, abonelik, fatura, harçlık, konut kredisi, emeklilik ve diğer hesaplayıcılar)."
+description: "Finans ve Hesaplama motoru: 24 çevrimdışı araç (bütçe, borç, birikim, net varlık, abonelik, fatura, harçlık, altın günü, veresiye, sepet enflasyonu, mini kasa, konut kredisi, emeklilik ve diğer hesaplayıcılar)."
 publish_to: none
 version: 1.0.0
 
@@ -16,6 +16,7 @@ dependencies:
       ref: 8cb935c63a86ca3e5fb38758edd5bb8ec44dccdd
   flutter_local_notifications: ">=19.0.0 <20.0.0"
   path_provider: ^2.1.4
+  share_plus: ">=11.0.0 <13.0.0"
   timezone: ">=0.10.0 <0.11.0"
 
 dev_dependencies:

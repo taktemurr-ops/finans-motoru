@@ -1,6 +1,6 @@
 # finans-motoru
 
-Finans ve Hesaplama ailesinin motoru: 20 aracın gerçek uygulamaları, 33 dilde metinleri ve
+Finans ve Hesaplama ailesinin motoru: 24 aracın gerçek uygulamaları, 33 dilde metinleri ve
 merkez görünümü (onaylı oyun merkezi tasarımının koyu yeşil tonu).
 
 - Çatı: `studio_core/apps` (AppTool, merkez kabuğu, reklam/satın alma, gizlilik, favoriler).
@@ -9,6 +9,12 @@ merkez görünümü (onaylı oyun merkezi tasarımının koyu yeşil tonu).
 - Tamamen çevrimdışı. Banka bağlantısı yok; veriler yalnızca cihazda. Kayıt tutan araçlar CSV
   olarak dışa aktarır (panoya kopyalar; mobil/masaüstünde belgeler klasörüne yazar).
 - Bütün araçlar `AppDisclaimer.finance` uyarısını gösterir. Uygulama **kredi sunmaz**.
+- 4. tur kayıt araçları (`lib/src/shop.dart`, `tools/shop_ui.dart`): **Altın Günü Defteri** (dönüşümlü birikim
+  grubu: sıra, takvim, kim ödedi/kim aldı; isteğe bağlı ödülsüz sıra kurası), **Veresiye Defteri** (müşteri cari
+  hesabı, limit, hesap dökümü), **Kişisel Sepet Enflasyonu** (kendi fiyat geçmişinden sabit sepet endeksi; resmî
+  enflasyon iddiası yok), **Mini Kasa ve Stok** (satış kaydı, stok düşümü, az stok uyarısı, günlük/haftalık/aylık
+  özet). Hiçbiri para tutmaz, taşımaz ya da ödeme almaz. Hatırlatma ve döküm metinlerini kullanıcı paylaşım
+  menüsüyle (`share_plus`) kendisi gönderir.
 - Fatura ve abonelik hatırlatmaları `flutter_local_notifications` ile yerel bildirimdir; kesin alarm
   izni istenmez. Web'de bildirim yoktur, tarihler listede görünür.
 - Harçlık takibi **ebeveynler** için bir defterdir; çocuktan veri toplanmaz.

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:finans_motoru/finans_motoru.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -7,9 +9,9 @@ import 'package:studio_core/app/services/purchases.dart';
 import 'package:studio_core/core/save_store.dart';
 
 void main() {
-  test('20 araç, 33 dilde ad ve açıklama, finans uyarısı', () {
-    expect(finansTools.length, 20);
-    expect(finansTools.map((t) => t.id).toSet().length, 20);
+  test('24 araç, 33 dilde ad ve açıklama, finans uyarısı', () {
+    expect(finansTools.length, 24);
+    expect(finansTools.map((t) => t.id).toSet().length, 24);
     for (final t in finansTools) {
       expect(t.title.length, 33, reason: t.id);
       expect(t.tagline.length, 33, reason: t.id);
@@ -233,12 +235,103 @@ void main() {
     expect([for (final x in s) x['m']], ['2026-01', '2026-03']);
   });
 
+  test('altın günü: takvim, eksik ödeme, üye toplamları, kura', () {
+    var g = Rosca(id: 'g', name: 'Gün', amount: 50000, start: DateTime(2026, 1, 31), members: ['Ayşe', 'Fatma', 'Zeynep']);
+    expect(g.pot, 150000);
+    expect(g.dateOf(1), DateTime(2026, 2, 28)); // ay sonu taşması yok
+    expect(g.dateOf(2), DateTime(2026, 3, 31));
+    final w = g.copyWith(freq: '2week');
+    expect(w.dateOf(2), DateTime(2026, 2, 28));
+    // 1. tur (Ayşe alır): Fatma ödedi, Zeynep ödemedi.
+    g = g.togglePaid(0, 1);
+    expect(g.missing(DateTime(2026, 2, 1)), [(0, 2)]);
+    expect(g.collected(0), 100000);
+    g = g.togglePaid(0, 2).toggleDelivered(0);
+    expect(g.missing(DateTime(2026, 2, 1)), isEmpty);
+    expect(g.nextRound(DateTime(2026, 2, 1)), 1);
+    expect(g.memberTotals(0), (50000, 150000));
+    expect(g.memberTotals(2), (50000, 0));
+    expect(g.started, isTrue);
+    final back = Rosca.fromJson(g.toJson())!;
+    expect(back.paid[0], {1, 2});
+    expect(back.delivered, {0});
+    final s = Rosca(id: 'x', name: 'x', amount: 1, start: DateTime(2026), members: ['a', 'b', 'c', 'd']).shuffled(math.Random(3));
+    expect(s.members.toSet(), {'a', 'b', 'c', 'd'});
+    expect(Rosca.fromJson({'id': 'x', 'amount': 5, 'members': ['tek']}), isNull);
+    expect(roscaCsv(g).split('\r\n').length, 4);
+  });
+
+  test('veresiye: bakiye, limit, son ödeme, şablon', () {
+    var c = const Customer(id: 'c', name: 'Ali', limit: 10000);
+    c = c.add(CreditTx(DateTime(2026, 3, 1), 8000, 'ekmek'));
+    c = c.add(CreditTx(DateTime(2026, 3, 5), 4000));
+    expect(c.balance, 12000);
+    expect(c.overLimit, isTrue);
+    expect(c.daysSincePayment(DateTime(2026, 3, 11)), 10);
+    c = c.add(CreditTx(DateTime(2026, 3, 10), -5000));
+    expect(c.balance, 7000);
+    expect(c.daysSincePayment(DateTime(2026, 3, 11)), 1);
+    final o = const Customer(id: 'o', name: 'Veli').add(CreditTx(DateTime(2026), -300));
+    expect(creditTotals([c, o]), (7000, 300));
+    expect(fillTemplate('{name}: {amount} ({shop})', {'name': 'Ali', 'amount': '70', 'shop': 'Bakkal'}), 'Ali: 70 (Bakkal)');
+    expect(Customer.fromJson(c.toJson())!.balance, 7000);
+    expect(customersCsv([c]), contains('ekmek'));
+  });
+
+  test('sepet enflasyonu: sabit sepet endeksi ve değişimler', () {
+    final ekmek = BasketItem(id: 'e', name: 'Ekmek', qty: 30, prices: [
+      PricePoint(DateTime(2025, 1, 10), 1000),
+      PricePoint(DateTime(2025, 7, 10), 1200),
+      PricePoint(DateTime(2026, 1, 10), 1500),
+    ]);
+    final sut = BasketItem(id: 's', name: 'Süt', qty: 10, prices: [PricePoint(DateTime(2025, 1, 5), 3000), PricePoint(DateTime(2026, 1, 5), 3300)]);
+    // Temel ayda fiyatı olmayan ürün sepete girmez.
+    final yeni = BasketItem(id: 'y', name: 'Yeni', prices: [PricePoint(DateTime(2025, 6, 1), 99999)]);
+    final ms = basketIndex([ekmek, sut, yeni], DateTime(2026, 1, 20));
+    expect(ms.length, 13);
+    expect(ms.first.cost, 30 * 1000 + 10 * 3000);
+    expect(ms.first.index, 100);
+    expect(ms[6].cost, 30 * 1200 + 10 * 3000); // Temmuz: ekmek zamlı, süt taşınır
+    expect(ms.last.cost, 30 * 1500 + 10 * 3300);
+    expect(ms.last.index, closeTo(78000 / 60000 * 100, 1e-9));
+    final ch = basketChanges(ms);
+    expect(ch.$1, closeTo((78000 / 66000 - 1) * 100, 1e-9));
+    expect(ch.$2, closeTo(30, 1e-9));
+    expect(ekmek.change, closeTo(50, 1e-9));
+    expect(basketIndex(const [], DateTime(2026)), isEmpty);
+    expect(BasketItem.fromJson(ekmek.toJson())!.prices.length, 3);
+  });
+
+  test('mini kasa: satış stok düşer, iade geri ekler, özet', () {
+    final ps = [
+      const Product(id: 'a', name: 'Çay', price: 1500, cost: 500, stock: 10, low: 3),
+      const Product(id: 'b', name: 'Simit', price: 2000, stock: 4, low: 5),
+    ];
+    expect(ps[1].isLow, isTrue);
+    final (sale, after) = checkout(ps, {'a': 3, 'b': 1}, DateTime(2026, 5, 2, 9), id: 's1');
+    expect(sale.total, 3 * 1500 + 2000);
+    expect(sale.profit, 3 * 1000 + 2000);
+    expect(after[0].stock, 7);
+    expect(after[1].stock, 3);
+    final back = refund(after, sale);
+    expect([for (final p in back) p.stock], [10, 4]);
+    final (s2, _) = checkout(after, {'a': 1}, DateTime(2026, 5, 3, 18), id: 's2');
+    final day = summarize([sale, s2], DateTime(2026, 5, 2), DateTime(2026, 5, 2));
+    expect((day.revenue, day.count, day.items), (6500, 1, 4));
+    final week = summarize([sale, s2], DateTime(2026, 4, 27), DateTime(2026, 5, 3));
+    expect(week.revenue, 8000);
+    expect(week.top.first.$1, 'Çay');
+    expect(Sale.fromJson(sale.toJson())!.total, sale.total);
+    expect(salesCsv([sale]).split('\r\n').length, 3);
+  });
+
   for (final t in [
     'uyg-butce-ve-harcama-takibi', 'uyg-kredi-hesaplayici', 'uyg-faiz-ve-birikim-hesaplayici', 'uyg-indirim-ve-kdv-hesaplayici',
     'uyg-hesap-bolusme-ve-bahsis', 'uyg-borc-takibi', 'uyg-abonelik-takibi', 'uyg-fatura-hatirlatici', 'uyg-birikim-hedefi',
     'uyg-harclik-takibi', 'uyg-birim-fiyat-karsilastirma', 'uyg-taksit-hesaplayici', 'uyg-kredi-karti-borc-planlayici',
     'uyg-kira-artis-hesaplayici', 'uyg-enflasyon-hesaplayici', 'uyg-gelir-vergisi-hesaplayici', 'uyg-zekat-hesaplayici',
     'uyg-konut-kredisi-hesaplayici', 'uyg-emeklilik-hesaplayici', 'uyg-net-varlik-takibi',
+    'uyg-altin-gunu', 'uyg-veresiye-defteri', 'uyg-sepet-enflasyonu', 'uyg-mini-kasa-stok',
   ]) {
     testWidgets('araç ekranı açılır: $t', (tester) async {
       final s = AppServices(hubId: 'm', backend: MemoryBackend(), ads: NoAdsService(), purchases: NoPurchaseService());

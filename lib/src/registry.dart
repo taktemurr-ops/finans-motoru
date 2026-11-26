@@ -1,4 +1,4 @@
-/// Üretilmiş dosya (proto/apps/finans/mkengine.py). Finans ve Hesaplama'nın 20 aracı.
+/// Üretilmiş dosya (proto/apps/finans/mkengine.py). Finans ve Hesaplama'nın 24 aracı.
 library;
 
 import 'package:flutter/material.dart';
@@ -7,6 +7,7 @@ import 'package:studio_core/apps/apps.dart';
 import 'tools/books_ui.dart';
 import 'tools/calcs.dart';
 import 'tools/plans.dart';
+import 'tools/shop_ui.dart';
 import 'tx.dart';
 
 /// Kategoriler (merkezdeki çip sırası).
@@ -238,6 +239,50 @@ final List<AppTool> finansTools = [
     disclaimer: AppDisclaimer.finance,
     keywords: const ['net worth', 'varlık', 'assets', 'debts', 'csv'],
     builder: (context, t) => NetWorthTool(t),
+  ),
+  AppTool(
+    id: 'uyg-altin-gunu',
+    title: kFinTitle['uyg-altin-gunu']!,
+    tagline: kFinTag['uyg-altin-gunu']!,
+    icon: Icons.diversity_3_rounded,
+    color: const Color(0xFFFFD54F),
+    category: 'track',
+    disclaimer: AppDisclaimer.finance,
+    keywords: const ['altın günü', 'arisan', 'tanda', 'chit', 'rosca', 'paluwagan', 'committee'],
+    builder: (context, t) => RoscaTool(t),
+  ),
+  AppTool(
+    id: 'uyg-veresiye-defteri',
+    title: kFinTitle['uyg-veresiye-defteri']!,
+    tagline: kFinTag['uyg-veresiye-defteri']!,
+    icon: Icons.menu_book_rounded,
+    color: const Color(0xFFFF8A65),
+    category: 'track',
+    disclaimer: AppDisclaimer.finance,
+    keywords: const ['veresiye', 'khata', 'udhaar', 'credit book', 'fiado', 'kasbon', 'csv'],
+    builder: (context, t) => CreditBookTool(t),
+  ),
+  AppTool(
+    id: 'uyg-sepet-enflasyonu',
+    title: kFinTitle['uyg-sepet-enflasyonu']!,
+    tagline: kFinTag['uyg-sepet-enflasyonu']!,
+    icon: Icons.shopping_basket_rounded,
+    color: const Color(0xFFF06292),
+    category: 'shop',
+    disclaimer: AppDisclaimer.finance,
+    keywords: const ['inflation', 'enflasyon', 'basket', 'sepet', 'price history', 'csv'],
+    builder: (context, t) => BasketTool(t),
+  ),
+  AppTool(
+    id: 'uyg-mini-kasa-stok',
+    title: kFinTitle['uyg-mini-kasa-stok']!,
+    tagline: kFinTag['uyg-mini-kasa-stok']!,
+    icon: Icons.point_of_sale_rounded,
+    color: const Color(0xFF4FC3F7),
+    category: 'track',
+    disclaimer: AppDisclaimer.finance,
+    keywords: const ['pos', 'kasa', 'stock', 'stok', 'inventory', 'sales', 'csv'],
+    builder: (context, t) => MiniPosTool(t),
   ),
 ];
 

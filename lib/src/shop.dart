@@ -72,7 +72,7 @@ class Rosca {
       return dayInMonth(y, m, start.day);
     }
     final step = freq == '2week' ? 14 : 7;
-    return d.add(Duration(days: step * i));
+    return DateTime(d.year, d.month, d.day + step * i);
   }
 
   /// Bugünden sonraki (ya da bugünkü) ilk teslim edilmemiş tur; yoksa null.
@@ -249,7 +249,8 @@ class Customer {
       if (x.cents < 0 && (ref == null || x.date.isAfter(ref))) ref = x.date;
     }
     ref ??= txs.map((x) => x.date).reduce((a, b) => a.isBefore(b) ? a : b);
-    return _day(today).difference(_day(ref)).inDays;
+    // Yerel gece yarıları arası (yaz saati günleri 23/25 saat): yuvarlanır.
+    return (_day(today).difference(_day(ref)).inHours / 24).round();
   }
 
   Customer copyWith({String? name, String? phone, String? note, int? limit, List<CreditTx>? txs}) => Customer(

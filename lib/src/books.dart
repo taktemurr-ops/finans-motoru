@@ -27,7 +27,7 @@ String _str(Object? v, [String f = '']) => v is String ? v : f;
 
 /// Ay sonu taşmasını önleyerek bir sonraki tarih (31 Ocak → 28/29 Şubat).
 DateTime advance(DateTime d, String freq) {
-  if (freq == 'week') return d.add(const Duration(days: 7));
+  if (freq == 'week') return DateTime(d.year, d.month, d.day + 7, d.hour, d.minute);
   final months = freq == 'year' ? 12 : 1;
   final y = d.year + (d.month - 1 + months) ~/ 12;
   final m = (d.month - 1 + months) % 12 + 1;

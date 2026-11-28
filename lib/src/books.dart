@@ -8,6 +8,7 @@
 library;
 
 import 'dart:math' as math;
+import 'fold.dart';
 
 int _seq = 0;
 
@@ -213,10 +214,10 @@ class Ledger {
   }
 
   List<Entry> search(String q, {String? month}) {
-    final s = q.trim().toLowerCase();
+    final s = q.trim().folded;
     return entries
         .where((e) => month == null || monthKey(e.date) == month)
-        .where((e) => s.isEmpty || e.note.toLowerCase().contains(s) || e.category.toLowerCase().contains(s))
+        .where((e) => s.isEmpty || e.note.folded.contains(s) || e.category.folded.contains(s))
         .toList()
       ..sort((a, b) => b.date.compareTo(a.date));
   }

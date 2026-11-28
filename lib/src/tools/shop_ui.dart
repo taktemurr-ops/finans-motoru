@@ -19,6 +19,7 @@ import '../common.dart';
 import '../core.dart';
 import '../shop.dart';
 import 'books_ui.dart';
+import '../fold.dart';
 
 /// Metni sistem paylaşım menüsüyle paylaşır; olmazsa panoya kopyalar.
 Future<void> shareText(BuildContext context, ToolContext t, String text) async {
@@ -381,8 +382,8 @@ class _CreditBookState extends BookState<CreditBookTool> {
   Widget _list(BuildContext context) {
     final now = DateTime.now();
     final tot = creditTotals(_c);
-    final q = _search.text.trim().toLowerCase();
-    final list = [for (final c in _c) if (q.isEmpty || c.name.toLowerCase().contains(q) || c.phone.contains(q)) c]
+    final q = _search.text.trim().folded;
+    final list = [for (final c in _c) if (q.isEmpty || c.name.folded.contains(q) || c.phone.contains(q)) c]
       ..sort((a, b) => b.balance.compareTo(a.balance));
     return ToolList(children: [
       bar(
